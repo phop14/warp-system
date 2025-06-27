@@ -1,0 +1,586 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Modern Timer</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+        }
+
+        .timer-container {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(20px);
+            border-radius: 30px;
+            padding: 60px;
+            text-align: center;
+            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            width: 95vw;
+            max-width: 1200px;
+            min-height: 80vh;
+            position: relative;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        .timer-container::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: conic-gradient(from 0deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+            animation: rotate 20s linear infinite;
+            z-index: -1;
+        }
+
+        .timer-display {
+            font-size: 6em;
+            font-weight: 300;
+            color: white;
+            margin: 0;
+            text-shadow: 0 0 30px rgba(255, 255, 255, 0.6);
+            font-variant-numeric: tabular-nums;
+            letter-spacing: 0.1em;
+            position: absolute;
+            top: 57%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 10;
+        }
+
+        .controls {
+            display: flex;
+            gap: 40px;
+            justify-content: center;
+            flex-wrap: wrap;
+            margin: 40px 0;
+        }
+
+        .input-group {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .input-group label {
+            color: rgba(255, 255, 255, 0.8);
+            font-size: 0.9em;
+            font-weight: 500;
+        }
+
+        .time-input {
+            width: 100px;
+            padding: 20px;
+            border: none;
+            border-radius: 20px;
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            text-align: center;
+            font-size: 1.5em;
+            font-weight: 600;
+            backdrop-filter: blur(10px);
+            transition: all 0.3s ease;
+        }
+
+        .time-input:focus {
+            outline: none;
+            background: rgba(255, 255, 255, 0.3);
+            transform: scale(1.05);
+            box-shadow: 0 0 20px rgba(255, 255, 255, 0.3);
+        }
+
+        .time-input::placeholder {
+            color: rgba(255, 255, 255, 0.6);
+        }
+
+        .button-group {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            padding: 20px 40px;
+            border: none;
+            border-radius: 30px;
+            font-size: 1.3em;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+            min-width: 150px;
+        }
+
+        .btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.4), transparent);
+            transition: left 0.5s ease;
+        }
+
+        .btn:hover::before {
+            left: 100%;
+        }
+
+        .btn-start {
+            background: linear-gradient(45deg, #4CAF50, #45a049);
+            color: white;
+            box-shadow: 0 5px 15px rgba(76, 175, 80, 0.4);
+        }
+
+        .btn-start:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(76, 175, 80, 0.6);
+        }
+
+        .btn-pause {
+            background: linear-gradient(45deg, #ff9800, #f57c00);
+            color: white;
+            box-shadow: 0 5px 15px rgba(255, 152, 0, 0.4);
+        }
+
+        .btn-pause:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(255, 152, 0, 0.6);
+        }
+
+        .btn-reset {
+            background: linear-gradient(45deg, #f44336, #d32f2f);
+            color: white;
+            box-shadow: 0 5px 15px rgba(244, 67, 54, 0.4);
+        }
+
+        .btn-reset:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(244, 67, 54, 0.6);
+        }
+
+        .btn-stopwatch {
+            background: linear-gradient(45deg, #9c27b0, #7b1fa2);
+            color: white;
+            box-shadow: 0 5px 15px rgba(156, 39, 176, 0.4);
+        }
+
+        .btn-stopwatch:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(156, 39, 176, 0.6);
+        }
+
+        .mode-indicator {
+            color: rgba(255, 255, 255, 0.8);
+            font-size: 1.1em;
+            font-weight: 500;
+            margin-top: 20px;
+            padding: 10px 20px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 20px;
+            backdrop-filter: blur(10px);
+            display: inline-block;
+        }
+
+        .progress-ring {
+            transform: rotate(-90deg);
+            margin: 0 auto 40px auto;
+            position: relative;
+        }
+
+        .progress-ring-circle {
+            fill: none;
+            stroke: rgba(255, 255, 255, 0.2);
+            stroke-width: 12;
+        }
+
+        .progress-ring-progress {
+            fill: none;
+            stroke: #fff;
+            stroke-width: 12;
+            stroke-linecap: round;
+            stroke-dasharray: 816;
+            stroke-dashoffset: 816;
+            transition: stroke-dashoffset 1s ease;
+            filter: drop-shadow(0 0 15px rgba(255, 255, 255, 0.8));
+        }
+
+        .floating-particles {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            top: 0;
+            left: 0;
+            pointer-events: none;
+            overflow: hidden;
+        }
+
+        .particle {
+            position: absolute;
+            width: 4px;
+            height: 4px;
+            background: rgba(255, 255, 255, 0.6);
+            border-radius: 50%;
+            animation: float 6s infinite ease-in-out;
+        }
+
+        @keyframes rotate {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+
+        @keyframes float {
+            0%, 100% { 
+                transform: translateY(100vh) rotate(0deg);
+                opacity: 0;
+            }
+            10% { opacity: 1; }
+            90% { opacity: 1; }
+        }
+
+        .timer-finished {
+            animation: pulse 1s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+
+        @media (max-width: 600px) {
+            .timer-container {
+                padding: 30px 20px;
+            }
+            
+            .timer-display {
+                font-size: 2.5em;
+            }
+            
+            .controls {
+                flex-direction: column;
+                gap: 15px;
+            }
+            
+            .input-group {
+                flex-direction: row;
+                gap: 15px;
+            }
+            
+            .btn {
+                min-width: 100px;
+                padding: 12px 25px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="timer-container">
+        <div class="floating-particles"></div>
+        
+        <div class="timer-display" id="timerDisplay">00:00:00</div>
+        
+        <svg class="progress-ring" width="300" height="300">
+            <circle class="progress-ring-circle" cx="150" cy="150" r="130"></circle>
+            <circle class="progress-ring-progress" cx="150" cy="150" r="130"></circle>
+        </svg>
+        
+        <div class="controls">
+            <div class="input-group">
+                <label>ชั่วโมง</label>
+                <input type="number" class="time-input" id="hours" min="0" max="23" value="0" placeholder="0">
+            </div>
+            <div class="input-group">
+                <label>นาที</label>
+                <input type="number" class="time-input" id="minutes" min="0" max="59" value="5" placeholder="5">
+            </div>
+            <div class="input-group">
+                <label>วินาที</label>
+                <input type="number" class="time-input" id="seconds" min="0" max="59" value="0" placeholder="0">
+            </div>
+        </div>
+        
+        <div class="button-group">
+            <button class="btn btn-start" id="startBtn">เริ่ม</button>
+            <button class="btn btn-pause" id="pauseBtn">หยุด</button>
+            <button class="btn btn-reset" id="resetBtn">รีเซ็ต</button>
+            <button class="btn btn-stopwatch" id="stopwatchBtn">จับเวลา</button>
+        </div>
+        
+        <div class="mode-indicator" id="modeIndicator">โหมด: นับถอยหลัง</div>
+    </div>
+
+    <script>
+        class ModernTimer {
+            constructor() {
+                this.totalTime = 0;
+                this.remainingTime = 0;
+                this.isRunning = false;
+                this.interval = null;
+                this.mode = 'countdown'; // 'countdown' หรือ 'stopwatch'
+                this.stopwatchTime = 0;
+                
+                this.hoursInput = document.getElementById('hours');
+                this.minutesInput = document.getElementById('minutes');
+                this.secondsInput = document.getElementById('seconds');
+                this.timerDisplay = document.getElementById('timerDisplay');
+                this.startBtn = document.getElementById('startBtn');
+                this.pauseBtn = document.getElementById('pauseBtn');
+                this.resetBtn = document.getElementById('resetBtn');
+                this.stopwatchBtn = document.getElementById('stopwatchBtn');
+                this.modeIndicator = document.getElementById('modeIndicator');
+                this.progressCircle = document.querySelector('.progress-ring-progress');
+                this.timerContainer = document.querySelector('.timer-container');
+                
+                this.bindEvents();
+                this.createParticles();
+                this.updateDisplay();
+            }
+            
+            bindEvents() {
+                this.startBtn.addEventListener('click', () => this.start());
+                this.pauseBtn.addEventListener('click', () => this.pause());
+                this.resetBtn.addEventListener('click', () => this.reset());
+                this.stopwatchBtn.addEventListener('click', () => this.toggleMode());
+                
+                [this.hoursInput, this.minutesInput, this.secondsInput].forEach(input => {
+                    input.addEventListener('input', () => this.updateTotalTime());
+                });
+            }
+            
+            createParticles() {
+                const particlesContainer = document.querySelector('.floating-particles');
+                for (let i = 0; i < 20; i++) {
+                    const particle = document.createElement('div');
+                    particle.className = 'particle';
+                    particle.style.left = Math.random() * 100 + '%';
+                    particle.style.animationDelay = Math.random() * 6 + 's';
+                    particle.style.animationDuration = (Math.random() * 4 + 4) + 's';
+                    particlesContainer.appendChild(particle);
+                }
+            }
+            
+            updateTotalTime() {
+                const hours = parseInt(this.hoursInput.value) || 0;
+                const minutes = parseInt(this.minutesInput.value) || 0;
+                const seconds = parseInt(this.secondsInput.value) || 0;
+                
+                this.totalTime = hours * 3600 + minutes * 60 + seconds;
+                if (!this.isRunning && this.mode === 'countdown') {
+                    this.remainingTime = this.totalTime;
+                    this.updateDisplay();
+                    this.updateProgress();
+                }
+            }
+            
+            toggleMode() {
+                if (this.isRunning) {
+                    this.pause();
+                }
+                
+                this.mode = this.mode === 'countdown' ? 'stopwatch' : 'countdown';
+                
+                if (this.mode === 'stopwatch') {
+                    this.modeIndicator.textContent = 'โหมด: จับเวลา';
+                    this.stopwatchBtn.textContent = 'นับถอยหลัง';
+                    this.hoursInput.style.display = 'none';
+                    this.minutesInput.style.display = 'none';
+                    this.secondsInput.style.display = 'none';
+                    this.hoursInput.parentElement.style.display = 'none';
+                    this.minutesInput.parentElement.style.display = 'none';
+                    this.secondsInput.parentElement.style.display = 'none';
+                    this.stopwatchTime = 0;
+                } else {
+                    this.modeIndicator.textContent = 'โหมด: นับถอยหลัง';
+                    this.stopwatchBtn.textContent = 'จับเวลา';
+                    this.hoursInput.style.display = 'block';
+                    this.minutesInput.style.display = 'block';
+                    this.secondsInput.style.display = 'block';
+                    this.hoursInput.parentElement.style.display = 'flex';
+                    this.minutesInput.parentElement.style.display = 'flex';
+                    this.secondsInput.parentElement.style.display = 'flex';
+                    this.updateTotalTime();
+                }
+                
+                this.reset();
+            }
+            
+            start() {
+                if (this.mode === 'countdown') {
+                    if (this.remainingTime <= 0) {
+                        this.updateTotalTime();
+                    }
+                    
+                    if (this.remainingTime > 0) {
+                        this.isRunning = true;
+                        this.startBtn.textContent = 'กำลังนับ...';
+                        this.startBtn.disabled = true;
+                        this.timerContainer.classList.remove('timer-finished');
+                        
+                        this.interval = setInterval(() => {
+                            this.remainingTime--;
+                            this.updateDisplay();
+                            this.updateProgress();
+                            
+                            if (this.remainingTime <= 0) {
+                                this.complete();
+                            }
+                        }, 1000);
+                    }
+                } else {
+                    // โหมดจับเวลา
+                    this.isRunning = true;
+                    this.startBtn.textContent = 'กำลังจับเวลา...';
+                    this.startBtn.disabled = true;
+                    this.timerContainer.classList.remove('timer-finished');
+                    
+                    this.interval = setInterval(() => {
+                        this.stopwatchTime++;
+                        this.updateDisplay();
+                        this.updateProgress();
+                    }, 1000);
+                }
+            }
+            
+            pause() {
+                if (this.isRunning) {
+                    this.isRunning = false;
+                    clearInterval(this.interval);
+                    this.startBtn.textContent = 'เริ่ม';
+                    this.startBtn.disabled = false;
+                }
+            }
+            
+            reset() {
+                this.isRunning = false;
+                clearInterval(this.interval);
+                
+                if (this.mode === 'countdown') {
+                    this.updateTotalTime();
+                } else {
+                    this.stopwatchTime = 0;
+                }
+                
+                this.updateDisplay();
+                this.updateProgress();
+                this.startBtn.textContent = 'เริ่ม';
+                this.startBtn.disabled = false;
+                this.timerContainer.classList.remove('timer-finished');
+            }
+            
+            complete() {
+                this.isRunning = false;
+                clearInterval(this.interval);
+                this.startBtn.textContent = 'เริ่ม';
+                this.startBtn.disabled = false;
+                this.timerContainer.classList.add('timer-finished');
+                
+                // เสียงแจ้งเตือน
+                this.playNotificationSound();
+                
+                // แจ้งเตือน
+                if ('Notification' in window) {
+                    if (Notification.permission === 'granted') {
+                        new Notification('⏰ หมดเวลาแล้ว!', {
+                            body: 'ตัวจับเวลาของคุณหมดเวลาแล้ว',
+                            icon: 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjQiIGhlaWdodD0iNjQiIHZpZXdCb3g9IjAgMCA2NCA2NCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPGNpcmNsZSBjeD0iMzIiIGN5PSIzMiIgcj0iMzAiIGZpbGw9IiM2NjdlZWEiLz4KPHN2ZyB4PSIxNiIgeT0iMTYiIHdpZHRoPSIzMiIgaGVpZ2h0PSIzMiIgdmlld0JveD0iMCAwIDI0IDI0IiBmaWxsPSJ3aGl0ZSI+CjxwYXRoIGQ9Ik0xMiAyQzYuNSAyIDIgNi41IDIgMTJzNC41IDEwIDEwIDEwIDEwLTQuNSAxMC0xMFMxNy41IDIgMTIgMnptNSAxNmwtMy0zVjhINnYyaDZWMTNsMyAzeiIvPgo8L3N2Zz4KPC9zdmc+'
+                        });
+                    } else if (Notification.permission !== 'denied') {
+                        Notification.requestPermission().then(permission => {
+                            if (permission === 'granted') {
+                                new Notification('⏰ หมดเวลาแล้ว!', {
+                                    body: 'ตัวจับเวลาของคุณหมดเวลาแล้ว'
+                                });
+                            }
+                        });
+                    }
+                }
+            }
+            
+            playNotificationSound() {
+                // สร้างเสียงแจ้งเตือนด้วย Web Audio API
+                const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                const oscillator = audioContext.createOscillator();
+                const gainNode = audioContext.createGain();
+                
+                oscillator.connect(gainNode);
+                gainNode.connect(audioContext.destination);
+                
+                oscillator.frequency.setValueAtTime(800, audioContext.currentTime);
+                oscillator.frequency.setValueAtTime(600, audioContext.currentTime + 0.1);
+                oscillator.frequency.setValueAtTime(800, audioContext.currentTime + 0.2);
+                
+                gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
+                gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.3);
+                
+                oscillator.start(audioContext.currentTime);
+                oscillator.stop(audioContext.currentTime + 0.3);
+            }
+            
+            updateDisplay() {
+                let displayTime;
+                
+                if (this.mode === 'countdown') {
+                    displayTime = this.remainingTime;
+                } else {
+                    displayTime = this.stopwatchTime;
+                }
+                
+                const hours = Math.floor(displayTime / 3600);
+                const minutes = Math.floor((displayTime % 3600) / 60);
+                const seconds = displayTime % 60;
+                
+                this.timerDisplay.textContent = 
+                    `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+            }
+            
+            updateProgress() {
+                if (this.mode === 'countdown') {
+                    if (this.totalTime > 0) {
+                        const progress = (this.totalTime - this.remainingTime) / this.totalTime;
+                        const offset = 816 - (progress * 816);
+                        this.progressCircle.style.strokeDashoffset = offset;
+                    } else {
+                        this.progressCircle.style.strokeDashoffset = 816;
+                    }
+                } else {
+                    // สำหรับโหมดจับเวลา ให้วงกลมเต็มเรื่อยๆ ทุก 60 วินาที
+                    const progress = (this.stopwatchTime % 60) / 60;
+                    const offset = 816 - (progress * 816);
+                    this.progressCircle.style.strokeDashoffset = offset;
+                }
+            }
+        }
+        
+        // เริ่มต้นตัวจับเวลา
+        document.addEventListener('DOMContentLoaded', () => {
+            new ModernTimer();
+            
+            // ขอสิทธิ์แจ้งเตือน
+            if ('Notification' in window && Notification.permission === 'default') {
+                Notification.requestPermission();
+            }
+        });
+    </script>
+</body>
+</html>
